@@ -99,6 +99,7 @@
       let food = { x: 10, y: 10 };
       let timer = null;
       let running = false;
+      let score = 0;
 
       const setButtons = (isRunning) => {
         startBtn.disabled = isRunning;
@@ -171,6 +172,8 @@
 
         snake.unshift(next);
         if (next.x === food.x && next.y === food.y) {
+          score += 1;
+          statusText.textContent = `游戏进行中，得分：${score}（方向键或鼠标点击控制）`;
           placeFood();
         } else {
           snake.pop();
@@ -183,7 +186,8 @@
           return;
         }
         running = true;
-        statusText.textContent = "游戏进行中，使用方向键或鼠标点击控制";
+        score = 0;
+        statusText.textContent = "游戏进行中，得分：0（方向键或鼠标点击控制）";
         resetGame();
         setButtons(true);
         timer = setInterval(step, 140);
