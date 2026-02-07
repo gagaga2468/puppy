@@ -183,7 +183,7 @@
           return;
         }
         running = true;
-        statusText.textContent = "游戏进行中，使用方向键控制";
+        statusText.textContent = "游戏进行中，使用方向键或鼠标点击控制";
         resetGame();
         setButtons(true);
         timer = setInterval(step, 140);
@@ -223,6 +223,26 @@
             break;
           default:
             break;
+        }
+      });
+
+      canvas.addEventListener("click", (event) => {
+        if (!running) {
+          return;
+        }
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+        const head = snake[0];
+        const headX = head.x * gridSize + gridSize / 2;
+        const headY = head.y * gridSize + gridSize / 2;
+        const deltaX = clickX - headX;
+        const deltaY = clickY - headY;
+
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          setDirection(deltaX > 0 ? 1 : -1, 0);
+        } else if (deltaY !== 0) {
+          setDirection(0, deltaY > 0 ? 1 : -1);
         }
       });
 
