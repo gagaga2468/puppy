@@ -42,19 +42,26 @@
         border: 1px solid #ececec;
       }
       .speed {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        width: 100%;
+        display: grid;
+        gap: 6px;
         font-size: 13px;
         color: #6b6b6b;
       }
-      .speed select {
-        border-radius: 999px;
-        border: 1px solid #e0e0e0;
-        padding: 6px 12px;
-        font-size: 13px;
-        background: #fff;
-        color: #1f1f1f;
+      .speed-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .speed-range {
+        width: 100%;
+        accent-color: #1f1f1f;
+      }
+      .speed-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #9b9b9b;
       }
       .controls {
         display: flex;
@@ -95,14 +102,27 @@
         <button id="start">开始</button>
         <button id="end" class="secondary">结束</button>
       </div>
-      <label class="speed">
-        速度
-        <select id="speed">
-          <option value="fast" selected>快</option>
-          <option value="medium">中</option>
-          <option value="slow">慢</option>
-        </select>
-      </label>
+      <div class="speed">
+        <div class="speed-header">
+          <span>速度</span>
+          <span id="speedValue">快</span>
+        </div>
+        <input
+          id="speed"
+          class="speed-range"
+          type="range"
+          min="0"
+          max="2"
+          step="1"
+          value="0"
+          aria-label="速度调节"
+        />
+        <div class="speed-labels">
+          <span>快</span>
+          <span>中</span>
+          <span>慢</span>
+        </div>
+      </div>
       <div class="status" id="status">按开始进入游戏</div>
     </div>
 
@@ -113,6 +133,7 @@
       const startBtn = document.getElementById("start");
       const endBtn = document.getElementById("end");
       const speedSelect = document.getElementById("speed");
+      const speedValue = document.getElementById("speedValue");
 
       const gridSize = 18;
       const tileCount = canvas.width / gridSize;
@@ -120,21 +141,27 @@
       let snake = [];
       let direction = { x: 1, y: 0 };
       let pendingDirection = { x: 1, y: 0 };
-      let food = { x: 10, y: 10 };
+      let foods = [];
       let timer = null;
       let running = false;
       let score = 0;
-      let currentSpeed = speedSelect.value;
+      let currentSpeed = "fast";
 
       const setButtons = (isRunning) => {
         startBtn.disabled = isRunning;
         endBtn.disabled = !isRunning;
       };
 
+      const speedOptions = ["fast", "medium", "slow"];
+      const speedLabels = {
+        fast: "快",
+        medium: "中",
+        slow: "慢",
+      };
       const speedMap = {
-        fast: 120,
-        medium: 160,
-        slow: 220,
+        fast: 240,
+        medium: 320,
+        slow: 440,
       };
 
       const restartTimer = () => {
@@ -153,7 +180,8 @@
         ];
         direction = { x: 1, y: 0 };
         pendingDirection = { x: 1, y: 0 };
-        placeFood();
+        foods = [];
+        fillFoods();
         draw();
       };
 
@@ -164,8 +192,17 @@
             x: Math.floor(Math.random() * tileCount),
             y: Math.floor(Math.random() * tileCount),
           };
-        } while (snake.some((segment) => segment.x === newFood.x && segment.y === newFood.y));
-        food = newFood;
+        } while (
+          snake.some((segment) => segment.x === newFood.x && segment.y === newFood.y) ||
+          foods.some((food) => food.x === newFood.x && food.y === newFood.y)
+        );
+        foods.push(newFood);
+      };
+
+      const fillFoods = () => {
+        while (foods.length < 5) {
+          placeFood();
+        }
       };
 
       const draw = () => {
@@ -182,15 +219,17 @@
         });
         ctx.globalAlpha = 1;
         ctx.fillStyle = "#ff6a00";
-        ctx.beginPath();
-        ctx.arc(
-          food.x * gridSize + gridSize / 2,
-          food.y * gridSize + gridSize / 2,
-          gridSize / 3,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
+        foods.forEach((food) => {
+          ctx.beginPath();
+          ctx.arc(
+            food.x * gridSize + gridSize / 2,
+            food.y * gridSize + gridSize / 2,
+            gridSize / 3,
+            0,
+            Math.PI * 2
+          );
+          ctx.fill();
+        });
       };
 
       const step = () => {
@@ -210,10 +249,12 @@
         }
 
         snake.unshift(next);
-        if (next.x === food.x && next.y === food.y) {
+        const foodIndex = foods.findIndex((food) => food.x === next.x && food.y === next.y);
+        if (foodIndex >= 0) {
           score += 1;
+          foods.splice(foodIndex, 1);
+          fillFoods();
           statusText.textContent = `游戏进行中，得分：${score}（方向键或鼠标点击控制）`;
-          placeFood();
         } else {
           snake.pop();
         }
@@ -229,6 +270,7 @@
         statusText.textContent = "游戏进行中，得分：0（方向键或鼠标点击控制）";
         resetGame();
         setButtons(true);
+        speedValue.textContent = speedLabels[currentSpeed];
         restartTimer();
       };
 
@@ -291,13 +333,16 @@
 
       startBtn.addEventListener("click", startGame);
       endBtn.addEventListener("click", () => stopGame("游戏已结束"));
-      speedSelect.addEventListener("change", (event) => {
-        currentSpeed = event.target.value;
+      speedSelect.addEventListener("input", (event) => {
+        const index = Number(event.target.value);
+        currentSpeed = speedOptions[index];
+        speedValue.textContent = speedLabels[currentSpeed];
         restartTimer();
       });
 
       resetGame();
       setButtons(false);
+      speedValue.textContent = speedLabels[currentSpeed];
     </script>
   </body>
 </html>
