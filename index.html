@@ -41,6 +41,21 @@
         border-radius: 16px;
         border: 1px solid #ececec;
       }
+      .speed {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #6b6b6b;
+      }
+      .speed select {
+        border-radius: 999px;
+        border: 1px solid #e0e0e0;
+        padding: 6px 12px;
+        font-size: 13px;
+        background: #fff;
+        color: #1f1f1f;
+      }
       .controls {
         display: flex;
         gap: 12px;
@@ -80,6 +95,14 @@
         <button id="start">开始</button>
         <button id="end" class="secondary">结束</button>
       </div>
+      <label class="speed">
+        速度
+        <select id="speed">
+          <option value="fast" selected>快</option>
+          <option value="medium">中</option>
+          <option value="slow">慢</option>
+        </select>
+      </label>
       <div class="status" id="status">按开始进入游戏</div>
     </div>
 
@@ -89,6 +112,7 @@
       const statusText = document.getElementById("status");
       const startBtn = document.getElementById("start");
       const endBtn = document.getElementById("end");
+      const speedSelect = document.getElementById("speed");
 
       const gridSize = 18;
       const tileCount = canvas.width / gridSize;
@@ -100,10 +124,25 @@
       let timer = null;
       let running = false;
       let score = 0;
+      let currentSpeed = speedSelect.value;
 
       const setButtons = (isRunning) => {
         startBtn.disabled = isRunning;
         endBtn.disabled = !isRunning;
+      };
+
+      const speedMap = {
+        fast: 120,
+        medium: 160,
+        slow: 220,
+      };
+
+      const restartTimer = () => {
+        if (!running) {
+          return;
+        }
+        clearInterval(timer);
+        timer = setInterval(step, speedMap[currentSpeed]);
       };
 
       const resetGame = () => {
@@ -131,7 +170,7 @@
 
       const draw = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#1f1f1f";
+        ctx.fillStyle = "#1b8f3a";
         snake.forEach((segment, index) => {
           ctx.globalAlpha = 1 - index * 0.04;
           ctx.fillRect(
@@ -190,7 +229,7 @@
         statusText.textContent = "游戏进行中，得分：0（方向键或鼠标点击控制）";
         resetGame();
         setButtons(true);
-        timer = setInterval(step, 140);
+        restartTimer();
       };
 
       const stopGame = (message = "游戏已结束") => {
@@ -252,6 +291,10 @@
 
       startBtn.addEventListener("click", startGame);
       endBtn.addEventListener("click", () => stopGame("游戏已结束"));
+      speedSelect.addEventListener("change", (event) => {
+        currentSpeed = event.target.value;
+        restartTimer();
+      });
 
       resetGame();
       setButtons(false);
