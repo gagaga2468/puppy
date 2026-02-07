@@ -62,6 +62,10 @@
         background: #e4e4e4;
         color: #1f1f1f;
       }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       .status {
         font-size: 13px;
         color: #6b6b6b;
@@ -95,6 +99,11 @@
       let food = { x: 10, y: 10 };
       let timer = null;
       let running = false;
+
+      const setButtons = (isRunning) => {
+        startBtn.disabled = isRunning;
+        endBtn.disabled = !isRunning;
+      };
 
       const resetGame = () => {
         snake = [
@@ -176,6 +185,7 @@
         running = true;
         statusText.textContent = "游戏进行中，使用方向键控制";
         resetGame();
+        setButtons(true);
         timer = setInterval(step, 140);
       };
 
@@ -184,6 +194,7 @@
         clearInterval(timer);
         timer = null;
         statusText.textContent = message;
+        setButtons(false);
       };
 
       const setDirection = (x, y) => {
@@ -219,6 +230,7 @@
       endBtn.addEventListener("click", () => stopGame("游戏已结束"));
 
       resetGame();
+      setButtons(false);
     </script>
   </body>
 </html>
